@@ -83,7 +83,7 @@ public class SemaphoreTest {
     public void tryAcquireWithTimeoutNoWait(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        semaphore.tryAcqure(1, MILLISECONDS, result->{
+        semaphore.tryAcqure(1, MILLISECONDS, result -> {
             context.assertTrue(result);
             async.complete();
         });
@@ -97,14 +97,14 @@ public class SemaphoreTest {
             context.assertTrue(result);
             async.complete();
         });
-        contextRule.vertx().setTimer(1, v->semaphore.release());
+        contextRule.vertx().setTimer(1, v -> semaphore.release());
     }
 
     @Test
     public void tryAcquireWithTimeoutFailing(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        semaphore.tryAcquire(2, 5, MILLISECONDS, result->{
+        semaphore.tryAcquire(2, 5, MILLISECONDS, result -> {
             context.assertFalse(result);
             async.complete();
         });
@@ -115,14 +115,17 @@ public class SemaphoreTest {
         Semaphore semaphore = new Semaphore(100, contextRule.vertx());
         context.assertEquals(100, semaphore.drainPermits());
         context.assertEquals(0, semaphore.getAvailablePermits());
-        context.assertFalse(semaphore.tryAcquire(1, () -> {}));
+        context.assertFalse(semaphore.tryAcquire(1, () -> {
+        }));
     }
 
     @Test
     public void getQueueLength(TestContext context){
         Semaphore semaphore = new Semaphore(9, contextRule.vertx());
-        semaphore.acquire(10, () -> {});
-        semaphore.acquire(10, () -> {});
+        semaphore.acquire(10, () -> {
+        });
+        semaphore.acquire(10, () -> {
+        });
         context.assertEquals(2, semaphore.getQueueLength());
     }
 
@@ -130,5 +133,25 @@ public class SemaphoreTest {
     public void getAvailablePermits(TestContext context){
         Semaphore semaphore = new Semaphore(100, contextRule.vertx());
         context.assertEquals(100, semaphore.getAvailablePermits());
+    }
+
+    @Test
+    public void testFairness(TestContext context){
+        Async async = context.async();
+        Semaphore semaphore = new Semaphore(1, true, contextRule.vertx());
+        semaphore.acquire(100, async::complete);
+        semaphore.acquire(2, ()->{});
+        semaphore.release(100);
+
+    }
+
+    @Test
+    public void testUnfairness(TestContext context){
+        Async async = context.async();
+        Semaphore semaphore = new Semaphore(1, true, contextRule.vertx());
+        semaphore.acquire(100, ()->{});
+        semaphore.acquire(2, async::complete);
+        semaphore.release(100);
+
     }
 }

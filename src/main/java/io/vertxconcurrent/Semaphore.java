@@ -3,6 +3,7 @@ package io.vertxconcurrent;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -15,14 +16,24 @@ import java.util.function.Consumer;
 public class Semaphore {
     private int availablePermits;
     private final Vertx vertx;
-    private final Queue<DeferredContextAction> deferredActions = new PriorityQueue<>();
+    private final Queue<DeferredContextAction> deferredActions;
 
     public Semaphore(int permits, Vertx vertx) {
+        this(permits, false, vertx);
+    }
+
+    public Semaphore(int permits, boolean fair, Vertx vertx) {
         availablePermits = permits;
         this.vertx = vertx;
+        deferredActions = fair? new LinkedList<>() : new PriorityQueue<>();
     }
+
     public Semaphore(int permits, io.vertx.rxjava.core.Vertx vertx) {
         this(permits, (Vertx) vertx.getDelegate());
+    }
+
+    public Semaphore(int permits, boolean fair, io.vertx.rxjava.core.Vertx vertx) {
+        this(permits, fair, (Vertx) vertx.getDelegate());
     }
 
     public void acquire(int permits, Runnable action){
