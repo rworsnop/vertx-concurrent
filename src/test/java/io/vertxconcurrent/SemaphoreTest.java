@@ -24,7 +24,7 @@ public class SemaphoreTest {
     public RunTestOnContext contextRule = new RunTestOnContext();
 
     @Rule
-    public Timeout timeoutRule = new Timeout(10, MILLISECONDS);
+    public Timeout timeoutRule = new Timeout(20, MILLISECONDS);
 
     @Test
     public void simpleAcquire(TestContext context){
@@ -77,6 +77,37 @@ public class SemaphoreTest {
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
         context.assertFalse(semaphore.tryAcquire(2, async::complete));
+    }
+
+    @Test
+    public void tryAcquireWithTimeoutNoWait(TestContext context){
+        Async async = context.async();
+        Semaphore semaphore = new Semaphore(1, contextRule.vertx());
+        semaphore.tryAcqure(1, MILLISECONDS, result->{
+            context.assertTrue(result);
+            async.complete();
+        });
+    }
+
+    @Test
+    public void tryAcquireWithTimeoutNeedWait(TestContext context){
+        Async async = context.async();
+        Semaphore semaphore = new Semaphore(1, contextRule.vertx());
+        semaphore.tryAcquire(2, 20, MILLISECONDS, result->{
+            context.assertTrue(result);
+            async.complete();
+        });
+        contextRule.vertx().setTimer(1, v->semaphore.release());
+    }
+
+    @Test
+    public void tryAcquireWithTimeoutFailing(TestContext context){
+        Async async = context.async();
+        Semaphore semaphore = new Semaphore(1, contextRule.vertx());
+        semaphore.tryAcquire(2, 5, MILLISECONDS, result->{
+            context.assertFalse(result);
+            async.complete();
+        });
     }
 
     @Test
