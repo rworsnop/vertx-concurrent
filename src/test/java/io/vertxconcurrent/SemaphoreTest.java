@@ -148,7 +148,7 @@ public class SemaphoreTest {
     @Test
     public void testUnfairness(TestContext context){
         Async async = context.async();
-        Semaphore semaphore = new Semaphore(1, true, contextRule.vertx());
+        Semaphore semaphore = new Semaphore(1, false, contextRule.vertx());
         semaphore.acquire(100, ()->{});
         semaphore.acquire(2, async::complete);
         semaphore.release(100);
