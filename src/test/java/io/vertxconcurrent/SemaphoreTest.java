@@ -30,14 +30,14 @@ public class SemaphoreTest {
     public void simpleAcquire(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(2, contextRule.vertx());
-        semaphore.acquire(2, v -> async.complete());
+        semaphore.acquire(2, async::complete);
     }
 
     @Test
     public void acquireNeedingRelease(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(2, contextRule.vertx());
-        semaphore.acquire(3, v -> async.complete());
+        semaphore.acquire(3, async::complete);
         semaphore.release(1);
     }
 
@@ -45,14 +45,14 @@ public class SemaphoreTest {
     public void acquireNotEnoughPermits(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        semaphore.acquire(2, v -> async.complete());
+        semaphore.acquire(2, async::complete);
     }
 
     @Test
     public void simpleSingleAcquireSinglePermit(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        semaphore.acquire(v -> async.complete());
+        semaphore.acquire(async::complete);
     }
 
     @Test
@@ -60,8 +60,8 @@ public class SemaphoreTest {
         Async async1 = context.async();
         Async async2 = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        semaphore.acquire(v -> async1.complete());
-        semaphore.acquire(v -> async2.complete());
+        semaphore.acquire(async1::complete);
+        semaphore.acquire(async2::complete);
         semaphore.release();
     }
 
@@ -69,14 +69,14 @@ public class SemaphoreTest {
     public void tryAcquire(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        context.assertTrue(semaphore.tryAcquire(1, v -> async.complete()));
+        context.assertTrue(semaphore.tryAcquire(1, async::complete));
     }
 
     @Test(expected = TimeoutException.class)
     public void tryAcquireNotEnoughPermits(TestContext context){
         Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        context.assertFalse(semaphore.tryAcquire(2, v -> async.complete()));
+        context.assertFalse(semaphore.tryAcquire(2, async::complete));
     }
 
     @Test
@@ -84,14 +84,14 @@ public class SemaphoreTest {
         Semaphore semaphore = new Semaphore(100, contextRule.vertx());
         context.assertEquals(100, semaphore.drainPermits());
         context.assertEquals(0, semaphore.getAvailablePermits());
-        context.assertFalse(semaphore.tryAcquire(1, v -> {}));
+        context.assertFalse(semaphore.tryAcquire(1, () -> {}));
     }
 
     @Test
     public void getQueueLength(TestContext context){
         Semaphore semaphore = new Semaphore(9, contextRule.vertx());
-        semaphore.acquire(10, v ->{});
-        semaphore.acquire(10, v ->{});
+        semaphore.acquire(10, () -> {});
+        semaphore.acquire(10, () -> {});
         context.assertEquals(2, semaphore.getQueueLength());
     }
 

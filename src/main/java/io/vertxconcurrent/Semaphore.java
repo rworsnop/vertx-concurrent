@@ -1,7 +1,6 @@
 package io.vertxconcurrent;
 
 import io.vertx.core.Context;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
 import java.util.PriorityQueue;
@@ -23,7 +22,7 @@ public class Semaphore {
         this(permits, (Vertx) vertx.getDelegate());
     }
 
-    public void acquire(int permits, Handler<Void> action){
+    public void acquire(int permits, Runnable action){
         ContextAction contextAction = new ContextAction(action, vertx.getOrCreateContext());
 
         synchronized (this){
@@ -36,14 +35,14 @@ public class Semaphore {
         }
     }
 
-    public void acquire(Handler<Void> action){
+    public void acquire(Runnable action){
         acquire(1, action);
     }
 
-    public synchronized boolean tryAcquire(int permits, Handler<Void> action){
+    public synchronized boolean tryAcquire(int permits, Runnable action){
         if (permits <= availablePermits){
             availablePermits -= permits;
-            vertx.getOrCreateContext().runOnContext(action);
+            vertx.getOrCreateContext().runOnContext(v->action.run());
             return true;
         } else{
             return false;
@@ -80,16 +79,16 @@ public class Semaphore {
     }
 
     private static class ContextAction {
-        private final Handler<Void> action;
+        private final Runnable action;
         private final Context context;
 
-        public ContextAction(Handler<Void> action, Context context) {
+        public ContextAction(Runnable action, Context context) {
             this.action = action;
             this.context = context;
         }
 
         public void run(){
-            context.runOnContext(action);
+            context.runOnContext(v->action.run());
         }
     }
 
