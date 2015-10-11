@@ -35,3 +35,13 @@ semaphore.tryAcquire(10, 30, SECONDS, success->{
     }
 });
 ```
+
+```
+// Don't process more than 30,000 requests in a 10-second window
+Semaphore semaphore = new Semaphore(30_000, vertx);
+vertx.createHttpServer().requestHandler(req->{
+    semaphore.acquire(()->req.response().end("Permits: " + semaphore.getAvailablePermits()));
+    vertx.setTimer(10_000, id->semaphore.release());
+}).listen(8082);
+
+```
