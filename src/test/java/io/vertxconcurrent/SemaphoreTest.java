@@ -17,6 +17,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * Created by Rob Worsnop on 10/10/15.
  */
 
+
 @RunWith(VertxUnitRunner.class)
 public class SemaphoreTest {
 
@@ -36,9 +37,9 @@ public class SemaphoreTest {
     @Test
     public void acquireNeedingRelease(TestContext context){
         Async async = context.async();
-        Semaphore semaphore = new Semaphore(2, contextRule.vertx());
+        Semaphore semaphore = new Semaphore(-2, contextRule.vertx());
         semaphore.acquire(3, async::complete);
-        semaphore.release(1);
+        semaphore.release(5);
     }
 
     @Test(expected = TimeoutException.class)
@@ -67,16 +68,15 @@ public class SemaphoreTest {
 
     @Test
     public void tryAcquire(TestContext context){
-        Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        context.assertTrue(semaphore.tryAcquire(1, async::complete));
+        context.assertTrue(semaphore.tryAcquire());
+        context.assertEquals(0, semaphore.getAvailablePermits());
     }
 
-    @Test(expected = TimeoutException.class)
+    @Test
     public void tryAcquireNotEnoughPermits(TestContext context){
-        Async async = context.async();
         Semaphore semaphore = new Semaphore(1, contextRule.vertx());
-        context.assertFalse(semaphore.tryAcquire(2, async::complete));
+        context.assertFalse(semaphore.tryAcquire(2));
     }
 
     @Test
@@ -112,11 +112,10 @@ public class SemaphoreTest {
 
     @Test
     public void drainPermits(TestContext context){
-        Semaphore semaphore = new Semaphore(100, contextRule.vertx());
-        context.assertEquals(100, semaphore.drainPermits());
+        Semaphore semaphore = new Semaphore(1, contextRule.vertx());
+        context.assertEquals(1, semaphore.drainPermits());
         context.assertEquals(0, semaphore.getAvailablePermits());
-        context.assertFalse(semaphore.tryAcquire(1, () -> {
-        }));
+        context.assertFalse(semaphore.tryAcquire(1));
     }
 
     @Test
