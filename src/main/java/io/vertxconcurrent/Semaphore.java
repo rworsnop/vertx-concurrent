@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 public class Semaphore {
     private int availablePermits;
     private final Vertx vertx;
-    private final Queue<DeferredContextAction> deferredActions;
+    private final Queue<ContextActionWithPermits> deferredActions;
 
     /**
      * Creates a {@code Semaphore} with the given number of
@@ -116,7 +116,7 @@ public class Semaphore {
                 availablePermits -= permits;
                 runOnContext(action);
             } else{
-                deferredActions.offer(new DeferredContextAction(permits, action, vertx.getOrCreateContext()));
+                deferredActions.offer(new ContextActionWithPermits(permits, action, vertx.getOrCreateContext()));
             }
         }
     }
@@ -240,8 +240,8 @@ public class Semaphore {
                 availablePermits -= permits;
                 runOnContext(successAction);
             } else{
-                TimerCancellingAction timerCancellingAction = new TimerCancellingAction(successAction);
-                DeferredContextAction deferredAction = new DeferredContextAction(permits, timerCancellingAction, vertx.getOrCreateContext());
+                TimerCancellingAction timerCancellingAction = new TimerCancellingAction(vertx, successAction);
+                ContextActionWithPermits deferredAction = new ContextActionWithPermits(permits, timerCancellingAction, vertx.getOrCreateContext());
                 long timerId = vertx.setTimer(unit.toMillis(timeout), id -> timeout(deferredAction, resultHandler));
                 timerCancellingAction.setTimerId(timerId);
                 deferredActions.offer(deferredAction);
@@ -302,7 +302,7 @@ public class Semaphore {
     public synchronized void release(int permits){
         if (permits < 0) throw new IllegalArgumentException();
         availablePermits += permits;
-        DeferredContextAction action = deferredActions.peek();
+        ContextActionWithPermits action = deferredActions.peek();
         while (action != null && action.getPermits() <= availablePermits){
             availablePermits -= action.getPermits();
             action.run();
@@ -356,7 +356,7 @@ public class Semaphore {
         return availablePermits;
     }
 
-    private void timeout(DeferredContextAction deferredAction, Consumer<Boolean> resultHandler){
+    private void timeout(ContextActionWithPermits deferredAction, Consumer<Boolean> resultHandler){
         synchronized (this){
             if (deferredActions.remove(deferredAction)){
                 // if there was nothing to remove, action must already have been taken by release()
@@ -365,46 +365,18 @@ public class Semaphore {
         }
     }
 
-    private  class TimerCancellingAction implements Runnable{
-        final Runnable delegate;
-        Long timerId;
-
-        public TimerCancellingAction(Runnable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void run() {
-            Objects.requireNonNull(timerId);
-            vertx.cancelTimer(timerId);
-            delegate.run();
-        }
-
-        public void setTimerId(Long timerId) {
-            this.timerId = timerId;
-        }
-    }
-
-    private static class DeferredContextAction implements Comparable<DeferredContextAction>{
+    private static class ContextActionWithPermits extends ContextAction implements Comparable<ContextActionWithPermits>{
         private final Integer permits;
-        private final Runnable action;
-        private final Context context;
 
-        public DeferredContextAction(int permits, Runnable action, Context context) {
+        public ContextActionWithPermits(int permits, Runnable action, Context context) {
+            super(action, context);
             this.permits = permits;
-            this.action = action;
-            this.context = context;
-        }
+         }
 
         @Override
-        public int compareTo(DeferredContextAction other) {
+        public int compareTo(ContextActionWithPermits other) {
             return permits.compareTo(other.permits);
         }
-
-        public void run(){
-            context.runOnContext(v->action.run());
-        }
-
 
         public int getPermits() {
             return permits;
