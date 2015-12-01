@@ -4,6 +4,18 @@ A selection of utilities from java.util.concurrent, in Vert.x-aware, non-blockin
 
 See the [api docs](http://rworsnop.github.io/vertx-concurrent/apidocs/)
 
+## Getting the library 
+
+Either grab the latest from the [releases page](https://github.com/rworsnop/vertx-beans/releases) or add a Maven dependency:
+```
+<dependency>
+    <groupId>com.github.rworsnop</groupId>
+    <artifactId>vertx-concurrent</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+
 ## Examples
 
 ### Semaphore
