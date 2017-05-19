@@ -1,5 +1,7 @@
 # Vert.x Concurrent
 
+[![Build Status](https://travis-ci.org/rworsnop/vertx-concurrent.svg?branch=master)](https://travis-ci.org/rworsnop/vertx-concurrent)
+
 A selection of utilities from java.util.concurrent, in Vert.x-aware, non-blocking form.
 
 See the [api docs](http://rworsnop.github.io/vertx-concurrent/apidocs/)
