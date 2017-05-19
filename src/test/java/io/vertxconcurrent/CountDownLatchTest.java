@@ -20,7 +20,7 @@ public class CountDownLatchTest {
     public RunTestOnContext contextRule = new RunTestOnContext();
 
     @Rule
-    public Timeout timeoutRule = new Timeout(20, MILLISECONDS);
+    public Timeout timeoutRule = new Timeout(200, MILLISECONDS);
 
     @Test
     public void await(TestContext context){
@@ -50,7 +50,7 @@ public class CountDownLatchTest {
 
         CountDownLatch latch = new CountDownLatch(1, contextRule.vertx());
 
-        latch.await(10, MILLISECONDS, result -> {
+        latch.await(100, MILLISECONDS, result -> {
             context.assertTrue(result);
             async.complete();
         });
@@ -64,7 +64,7 @@ public class CountDownLatchTest {
 
         CountDownLatch latch = new CountDownLatch(1, contextRule.vertx());
 
-        latch.await(1, MILLISECONDS, result -> {
+        latch.await(10, MILLISECONDS, result -> {
             context.assertFalse(result);
             async.complete();
         });
@@ -74,7 +74,7 @@ public class CountDownLatchTest {
     public void awaitAlreadyZeroWithTimeout(TestContext context){
         Async async = context.async();
         CountDownLatch latch = new CountDownLatch(0, contextRule.vertx());
-        latch.await(1, MILLISECONDS, result -> {
+        latch.await(10, MILLISECONDS, result -> {
             context.assertTrue(result);
             async.complete();
         });
