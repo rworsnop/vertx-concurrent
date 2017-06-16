@@ -32,7 +32,7 @@ semaphore.acquire(10, ()->{
 
 ```
 Semaphore semaphore = new Semaphore(50, vertx);
-if (semaphore.tryAcquire(10){
+if (semaphore.tryAcquire(10)) {
     // do some work
     semaphore.release(10);
 }
