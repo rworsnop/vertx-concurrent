@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.TimeoutException;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Created by Rob Worsnop on 10/10/15.
@@ -25,7 +26,7 @@ public class SemaphoreTest {
     public RunTestOnContext contextRule = new RunTestOnContext();
 
     @Rule
-    public Timeout timeoutRule = new Timeout(20, MILLISECONDS);
+    public Timeout timeoutRule = new Timeout(1, SECONDS);
 
     @Test
     public void simpleAcquire(TestContext context){
